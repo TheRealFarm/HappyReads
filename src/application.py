@@ -1,4 +1,5 @@
 import os
+import random
 
 from flask import Flask, session, render_template, request
 from flask_session import Session
@@ -23,7 +24,11 @@ db = scoped_session(sessionmaker(bind=engine))
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    books_preview = ()
+    for x in range(5):
+        books_preview += (random.randint(1,5000),)
+    books = db.execute("select * from books where book_id in :books_preview", {"books_preview": books_preview}).fetchall()
+    return render_template("index.html", books=books)
 
 @app.route("/login")
 def login():

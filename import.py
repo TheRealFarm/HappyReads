@@ -14,8 +14,13 @@ def main():
     with open('books.csv', newline='') as csvfile:
         reader = csv.reader(csvfile)
         next(reader, None)
-        for row in reader:
-            print(', '.join(row))
+        id = 1
+        for isbn, title, author, year in reader:
+            db.execute("INSERT INTO books (book_id, isbn, title, author, year) VALUES (:book_id, :isbn, :title, :author, :year)",
+                        {"book_id": id, "isbn": isbn, "title": title, "author": author, "year": year})
+            print(f"Added book {title} by {author}, {year}. ISBN: {isbn}")
+            id += 1
+            db.commit()
 
 
 if __name__ == '__main__':
