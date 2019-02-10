@@ -3,8 +3,10 @@
 {% block body %}
     <h2>Buy a book. Review a book.</h2>
     {% for book in books %}
-    <ul>
-        {{ book.title }}
+    <ul class ="ul_book_box">
+        <div class="book_box">
+                {{ book.title }}
+        </div>
     </ul>
     {% endfor %}
 {% endblock %}

@@ -1,0 +1,11 @@
+.book_box {
+    border: 2px solid #007bff;
+    height: 100px;
+    margin: 20px;
+    padding: 20px;
+    width: 400px;
+}
+
+#ul_book_box ul {
+    display: inline;
+}
