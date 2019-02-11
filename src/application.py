@@ -1,6 +1,7 @@
 import os
 import random
 
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, session, render_template, request
 from flask_session import Session
 from sqlalchemy import create_engine
@@ -17,6 +18,11 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
+if not os.getenv("GOODREADS_API_KEY"):
+    raise RuntimeError("GOODREADS_API_KEY not set")
+
+goodreads_key = os.getenv("GOODREADS_API_KEY")
+
 # Set up database
 engine = create_engine(os.getenv("DATABASE_URL"))
 db = scoped_session(sessionmaker(bind=engine))
@@ -28,9 +34,14 @@ def index():
     for x in range(5):
         books_preview += (random.randint(1,5000),)
     books = db.execute("select * from books where book_id in :books_preview", {"books_preview": books_preview}).fetchall()
-    return render_template("index.html", books=books)
+    try:
+        user_id = session["user_id"]
+        return render_template("index.html", books=books, logged_in=True)
+    except KeyError:
+        return render_template("index.html", books=books, logged_in=False) 
+        
 
-@app.route("/login")
+@app.route("/login", methods=["GET", "POST"])
 def login():
     return render_template("login.html")
 
