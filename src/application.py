@@ -43,15 +43,34 @@ def index():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if request.method == "POST":
+        email = request.form.get("Email")
+        user = db.execute("select user_id from users where email = :email", {"email": email}).fetchone()
+        if user is not None:
+            password = request.form.get("Password")
+            if not check_password_hash(user.password, password):
+                return render_template("login.html", form_email = email, error_message="Incorrect password")
+            session["user_email"] = email
+            session["user_id"] = user.user_id
+        else:
+            return render_template("login.html", error_message="No user known with this email")
     return render_template("login.html")
 
-@app.route("/signup")
+@app.route("/signup", methods=["GET","POST"])
 def signup():
+    if request.method == "POST":
+        email = request.form.get("Email")
+        user = db.execute("select user_id from users where email = :email", {"email": email}).fetchone()
+        if user is not None:
+            return render_template("signup.html", error_message="User with that email already exists!")
     return render_template("signup.html")
+
+@app.route("/search", methods=["GET","POST"])
+def search():
+    return render_template("search.html")
 
 @app.route("/api/<int:isbn>", methods=["GET"])
 def isbn_search(isbn):
     book = db.execute("select * from books where isbn = :isbn", {"isbn": isbn}).fetchone()
     if book is None:
         return render_template("error.html")
-    
