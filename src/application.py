@@ -52,8 +52,9 @@ def login():
                 return render_template("login.html", form_email = email, error_message="Incorrect password")
             session["user_email"] = email
             session["user_id"] = user.user_id
+            return render_template("search.html")
         else:
-            return render_template("login.html", error_message="No user known with this email")
+            return render_template("login.html", error_message="No known user with this email.")
     return render_template("login.html")
 
 @app.route("/signup", methods=["GET","POST"])
@@ -63,6 +64,8 @@ def signup():
         user = db.execute("select user_id from users where email = :email", {"email": email}).fetchone()
         if user is not None:
             return render_template("signup.html", error_message="User with that email already exists!")
+        password = request.form.get("Password")
+        # handle insert
     return render_template("signup.html")
 
 @app.route("/search", methods=["GET","POST"])
