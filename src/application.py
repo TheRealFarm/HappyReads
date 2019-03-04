@@ -2,7 +2,7 @@ import os
 import random
 
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Flask, session, render_template, request
+from flask import Flask, session, render_template, request, redirect, url_for
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -36,7 +36,8 @@ def index():
     books = db.execute("select * from books where book_id in :books_preview", {"books_preview": books_preview}).fetchall()
     try:
         user_id = session["user_id"]
-        return render_template("index.html", books=books, logged_in=True)
+        email = session["email"]
+        return render_template("index.html", books=books, logged_in=True, user_email=email)
     except KeyError:
         return render_template("index.html", books=books, logged_in=False) 
         
@@ -45,14 +46,14 @@ def index():
 def login():
     if request.method == "POST":
         email = request.form.get("Email")
-        user = db.execute("select user_id from users where email = :email", {"email": email}).fetchone()
+        user = db.execute("select * from users where email = :email", {"email": email}).fetchone()
         if user is not None:
             password = request.form.get("Password")
             if not check_password_hash(user.password, password):
                 return render_template("login.html", form_email = email, error_message="Incorrect password")
             session["user_email"] = email
             session["user_id"] = user.user_id
-            return render_template("search.html")
+            return redirect(url_for('index'))
         else:
             return render_template("login.html", error_message="No known user with this email.")
     return render_template("login.html")
@@ -61,11 +62,22 @@ def login():
 def signup():
     if request.method == "POST":
         email = request.form.get("Email")
-        user = db.execute("select user_id from users where email = :email", {"email": email}).fetchone()
+        username = request.form.get("Username")
+        user = db.execute("select user_id,email,username from users where email = :email or username = :username", 
+                          {"email": email, "username": username}).fetchone()
         if user is not None:
-            return render_template("signup.html", error_message="User with that email already exists!")
+            # could look into enums for error types
+            if user.email == email:
+                return render_template("signup.html", error_type="email", error_message="User with that email already exists!")
+            else:
+                return render_template("singup.html", error_type="username", error_message="Username: {0} taken!".format(username))
+        first_name = request.form.get("Firstname")
+        last_name = request.form.get("Lastname")
         password = request.form.get("Password")
-        # handle insert
+        db.execute("insert into users (username, email, first_name, last_name, password) values (:username, :email, :first_name, :last_name, :password)",
+                    {"username": username, "email": email, "first_name": first_name, "last_name": last_name, "password": generate_password_hash(password)})
+        db.commit()
+        return redirect(url_for('login')) 
     return render_template("signup.html")
 
 @app.route("/search", methods=["GET","POST"])

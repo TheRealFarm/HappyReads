@@ -1,11 +1,26 @@
 {% extends 'base.html' %}
 
 {% block body %}
+
+{% if error_message %}
+<div class="alert alert-danger" role="alert">
+    <h4 class="alert-heading">Error</h4><br>
+    <p>
+        {{ error_message }}
+    </p>
+</div>
+{% endif %}
+
 <form action="" method="post">
     <div class="form-row">
         <div class="form-group col-md-4">
-            <label for="username">Username</label>
-            <input type="text" class="form-control" id="username" placeholder="Username" name="Username">
+            {% if error_type == 'username' %}
+                <label for="username">Username</label>
+                <input type="text" class="form-control is-invalid" id="username" placeholder="Username" name="Username">
+            {% else %}
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" placeholder="Username" name="Username">
+            {% endif %}
         </div>
         <div class="form-group col-md-4">
             <label for="input_password">Password</label>
@@ -14,8 +29,13 @@
     </div>
     <div class="form-row">
         <div class="form-group col-md-6">
-            <label for="input_email">Email</label>
-            <input type="email" class="form-control" id="input_email" placeholder="Email" name="Email">
+            {% if error_type == 'email' %}
+                <label for="input_email">Email</label>
+                <input type="email" class="form-control is-invalid" id="input_email" placeholder="Email" name="Email">
+            {% else %}
+                <label for="input_email">Email</label>
+                <input type="email" class="form-control" id="input_email" placeholder="Email" name="Email">
+            {% endif %}
         </div>
     </div>
      <div class="form-row">
